@@ -2,7 +2,6 @@ import pandas as pd
 import pickle
 import numpy as np
 
-# 1. Carregar os arquivos salvos no treinamento
 try:
     normalizador = pickle.load(open('normalizador_obesity.pkl', 'rb'))
     modelo_cluster = pickle.load(open('cluster_obesity.pkl', 'rb'))
@@ -10,10 +9,8 @@ except FileNotFoundError:
     print("Erro: Arquivos .pkl não encontrados. Rode o script de treinamento primeiro.")
     exit()
 
-# 2. Definir a estrutura de colunas que o modelo espera
 colunas_num = ['Age', 'Height', 'Weight', 'FCVC', 'NCP', 'CH2O', 'FAF', 'TUE']
 
-# Adicionamos as colunas NObeyesdad para ficar idêntico ao modelo treinado
 colunas_finais = [
     'Age', 'Height', 'Weight', 'FCVC', 'NCP', 'CH2O', 'FAF', 'TUE',
     'Gender_Female', 'Gender_Male', 
@@ -29,7 +26,6 @@ colunas_finais = [
     'NObeyesdad_Overweight_Level_II'
 ]
 
-# 3. Dados do Paciente Desconhecido (Exemplo para teste)
 paciente_dados_num = [[
     25.0,  # Age
     1.75,  # Height
@@ -41,7 +37,6 @@ paciente_dados_num = [[
     0.0    # TUE (Tempo de tela)
 ]]
 
-# Defina as categorias que o paciente se encaixa
 paciente_categorias = {
     'Gender_Male': 1,
     'family_history_with_overweight_yes': 1,
@@ -53,23 +48,17 @@ paciente_categorias = {
     'MTRANS_Public_Transportation': 1
 }
 
-# 4. Processamento para Inferência
-# 4.1 Normalizar a parte numérica
 paciente_num_norm = normalizador.transform(paciente_dados_num)
 df_paciente_num = pd.DataFrame(paciente_num_norm, columns=colunas_num)
 
-# 4.2 Criar DataFrame vazio com todas as colunas (Dummies) e preencher com o paciente
 df_template = pd.DataFrame(columns=colunas_finais)
 df_paciente_cat = pd.DataFrame([paciente_categorias])
 
-# 4.3 Concatenar e preencher o que faltou com 0
 paciente_final = pd.concat([df_paciente_num, df_paciente_cat], axis=1)
 paciente_final = pd.concat([paciente_final, df_template]).fillna(0)
 
-# Garantir que as colunas estejam na ordem exata que o modelo foi treinado
 paciente_final = paciente_final[colunas_finais]
 
-# 5. Predição
 cluster_designado = modelo_cluster.predict(paciente_final)
 
 print(f"\n--- Resultado da Inferência ---")
